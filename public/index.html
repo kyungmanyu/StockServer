@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="EUC-KR">
+<title>DB test</title>
+<script type="text/javascript">
+$(function() {
+	
+	
+	var cn = new ActiveXObject("SQLiteDb.Connection");
+	if (typeof(cn)=="undefined" || cn==null) 
+	 alert("Unable to create the connection object!");
+	else
+	 alert("Connection object was successfully created!");
+	 
+	var strConn = "Database=db/test.db";
+	function getdata(){
+	 cn.Open(strConn);
+	 var rs = new ActiveXObject("SQLiteDb.Recordset");
+	 var SQL = "SELECT CoName from Companies WHERE CoID=1";
+	 rs.Open(SQL, cn);
+	 alert(rs(0));
+	 rs.Close();
+	 cn.Close();
+	
+	
+}
+
+</script>
+</head>
+<body>
+	<h1>Node Webserver</h1>
+	<img src="sulhyun.jpg">
+	<div id ="sql"></div>
+</body>
+</html>
