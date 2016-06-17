@@ -20,11 +20,11 @@ function saveSql(queryData) {
 		database : "tokenstorage"
 	});
 
-	var sqlQuery = "INSERT INTO member SET ?";
+	var sqlQuery = "INSERT INTO tokens SET ?";
 	console.log(queryData);
 	var post = {
 		id : queryData.id,
-		pw : queryData.token
+		token : queryData.token
 	};
 
 	console.log(post);
@@ -53,6 +53,24 @@ app.get('/', function(req, res) {
 
 	// res.sendFile(__dirname+"/public/index.html");
 	handleGetRequest(req, res);
+});
+
+app.get('/showhistory', function(req, res) {
+	var path = req.pathname;
+
+	
+	
+	console.log('showhistory');
+	console.log('queryData res name: ' + res.name);
+	fs.readFile('/git_20160425/StockServer/public/history.html',function(error,data){
+		if(error){
+			console.log(error);
+		}else{
+			res.writeHead(200,{'Content-Type':'text/html'});
+			res.end(data);
+		}
+	});
+	
 });
 
 app.get('/sendgcm', function(req, res) {
@@ -114,7 +132,7 @@ function handleGcm(res, queryData) {
 		delayWhileIdle : true,
 		timeToLive : 3,
 		data : {
-			title : '주식 알림',
+			title : queryData.title,
 			message : queryData.message,
 			key1 : 'message1',
 			key2 : 'message2'
@@ -134,33 +152,41 @@ function handleGcm(res, queryData) {
 	var sender = new gcm.Sender('AIzaSyDmYg6tJfEjW7H5u5-FVdgwFrCK-p7ecFU');
 	var registrationIds = [];
 
-	connection.connect();
-	var query = connection.query(sqlQuery, callback);
-	connection.end();
 
 	function callback(err, result) {
 		if (err) {
 			throw err
 		}
 
-		for (var i = 0; result.length; i++) {
+		for (var i = 0; i < result.length; i++) {
+	
 			registrationIds
-			.push(result[i].token);			
+			.push(''+result[i].token+'');			
 		}
-
+		sender.send(message, registrationIds, 4, function(err, result) {
+			if (err) {
+				throw err
+			}
+			console.log('sender message = '+ message);
+			res.end(JSON.stringify(result));
+			console.log(result);
+		});
 	}
+	
+	connection.connect();
+	var query = connection.query(sqlQuery, callback);
 
+	console.log('query = '+ query);
+	connection.end();
+	
 	// At least one required
-	registrationIds
-			.push('e02WCttmTRg:APA91bE4oAvxswU3J9QgfZ4wN0VNotIKDwsPDKZHWIy2kXyacP1wXSpgYjoOrSX2ZmAsXTkeyx7BaQY_qUoerKpVPLVSKnloD3eM8Ibh_ue3aovd9DMsG_miVwa-7Dgo39DOQYkCDx9F');
-	registrationIds
-			.push('eiin5Am5cso:APA91bHzJGt7PWcs96v6i6ycBk-AwcgovHYgsXaV4qc4rgkcgQuBe3CCIHohsfKbR9ZtD8C41_oNEhcfv6I4zFBfWIaYvylj-dGrCvQPE6vSu1lhOyyrhrqRWh53GwGaIjNAzeF3eb-6');
+	//registrationIds
+	//		.push('ckbXUqb4Xss:APA91bH56YUVrXPP_wCI8CPc0oJmp5OYA3jePS8n1LE-mOSiORqKKzyqzuk_5J7piDUcrpPZ68pxYx19BvDNUbinwagJCBvPuQuXjFnnLnZ7dzUlMfccq5Ca74AP5fC-bTsMFA9B_CZN');
+	//registrationIds
+	//		.push('eiin5Am5cso:APA91bHzJGt7PWcs96v6i6ycBk-AwcgovHYgsXaV4qc4rgkcgQuBe3CCIHohsfKbR9ZtD8C41_oNEhcfv6I4zFBfWIaYvylj-dGrCvQPE6vSu1lhOyyrhrqRWh53GwGaIjNAzeF3eb-6');
 
-	sender.send(message, registrationIds, 4, function(err, result) {
-
-		res.end(JSON.stringify(result));
-		console.log(result);
-	});
+	
+	
 }
 
 function handleGetRequest(req, res) {
@@ -184,6 +210,6 @@ function handleGetRequest(req, res) {
 
 }
 
-server.listen(3000, function() {
-	console.log("server is running 3000 port...");
+server.listen(9000, function() {
+	console.log("server is running 9000 port...");
 });
