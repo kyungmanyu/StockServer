@@ -42,6 +42,38 @@ function saveSql(queryData) {
 	}
 }
 
+function saveJongmok(queryData) {
+
+	var connection = mysql.createConnection({
+		host : "localhost",
+		port : 3306,
+		user : "root",
+		password : "love0113",
+		database : "tokenstorage"
+	});
+
+	var sqlQuery = "INSERT INTO jongmoktable SET ?";
+	console.log(queryData);
+	var post = {
+		jongmok : queryData.jongmok,
+		price : queryData.price
+	};
+
+	console.log(post);
+
+	connection.connect();
+	var query = connection.query(sqlQuery, post, callback);
+	connection.end(post);
+
+	function callback(err, result) {
+		if (err) {
+			throw err
+		}
+		console.log("Insert Complete!");
+		console.log(query.sql);
+	}
+}
+
 // -----------------------------------------------------------------------------------------------------
 
 var server = http.createServer(app);
@@ -58,19 +90,20 @@ app.get('/', function(req, res) {
 app.get('/showhistory', function(req, res) {
 	var path = req.pathname;
 
-	
-	
 	console.log('showhistory');
 	console.log('queryData res name: ' + res.name);
-	fs.readFile('/git_20160425/StockServer/public/history.html',function(error,data){
-		if(error){
-			console.log(error);
-		}else{
-			res.writeHead(200,{'Content-Type':'text/html'});
-			res.end(data);
-		}
-	});
-	
+	fs.readFile('/StockServer-master/public/history.html',
+			function(error, data) {
+				if (error) {
+					console.log(error);
+				} else {
+					res.writeHead(200, {
+						'Content-Type' : 'text/html'
+					});
+					res.end(data);
+				}
+			});
+
 });
 
 app.get('/sendgcm', function(req, res) {
@@ -89,34 +122,21 @@ app.get('/savegcm', function(req, res) {
 	handleGetRequest(req, res);
 });
 
-// var server = http.createServer(function(req, res) {
-//	
-//	
-// app.get('/',function(req,res){
-// var path = req.pathname;
-//			
-// console.log('handleGetRequest path : ' + path);
-// console.log('queryData req name: ' + req.name);
-// res.sendfile(__dirname+"/index.html");
-// });
-//	
-//	
-// console.log('createserver');
-// var method = req.method.toLowerCase();
-// console.log('createserver method : ' + method);
-// if (method == 'get')
-// handleGetRequest(req, res);
-// // else if (method == 'post')
-// // handleGetRequest(req, res);
-// // else if (method == 'put')
-// // handleGetRequest(req, res);
-// // else if (method == 'delete')
-// // handleGetRequest(req, res);
-// else {
-// res.statusCode = 404;
-// res.end('Wrong method');
-// }
-// });
+app.get('/savejongmok', function(req, res) {
+	var path = req.pathname;
+
+	console.log('savejongmok handleGetRequest path : ' + path);
+	console.log('queryData req name: ' + req.name);
+	handleGetRequest(req, res);
+});
+
+app.get('/getjongmok', function(req, res) {
+	var path = req.pathname;
+
+	console.log('sendgcm handleGetRequest path : ' + path);
+	console.log('queryData req name: ' + req.name);
+	handleGetRequest(req, res);
+});
 
 /**
  * Params: message-literal, registrationIds-array, No. of retries,
@@ -152,41 +172,77 @@ function handleGcm(res, queryData) {
 	var sender = new gcm.Sender('AIzaSyDmYg6tJfEjW7H5u5-FVdgwFrCK-p7ecFU');
 	var registrationIds = [];
 
-
 	function callback(err, result) {
 		if (err) {
 			throw err
 		}
 
 		for (var i = 0; i < result.length; i++) {
-	
-			registrationIds
-			.push(''+result[i].token+'');			
+
+			registrationIds.push('' + result[i].token + '');
 		}
 		sender.send(message, registrationIds, 4, function(err, result) {
 			if (err) {
 				throw err
 			}
-			console.log('sender message = '+ message);
+			console.log('sender message = ' + message);
 			res.end(JSON.stringify(result));
 			console.log(result);
 		});
 	}
-	
+
 	connection.connect();
 	var query = connection.query(sqlQuery, callback);
 
-	console.log('query = '+ query);
+	console.log('query = ' + query);
 	connection.end();
-	
-	// At least one required
-	//registrationIds
-	//		.push('ckbXUqb4Xss:APA91bH56YUVrXPP_wCI8CPc0oJmp5OYA3jePS8n1LE-mOSiORqKKzyqzuk_5J7piDUcrpPZ68pxYx19BvDNUbinwagJCBvPuQuXjFnnLnZ7dzUlMfccq5Ca74AP5fC-bTsMFA9B_CZN');
-	//registrationIds
-	//		.push('eiin5Am5cso:APA91bHzJGt7PWcs96v6i6ycBk-AwcgovHYgsXaV4qc4rgkcgQuBe3CCIHohsfKbR9ZtD8C41_oNEhcfv6I4zFBfWIaYvylj-dGrCvQPE6vSu1lhOyyrhrqRWh53GwGaIjNAzeF3eb-6');
 
-	
-	
+	// At least one required
+	// registrationIds
+	// .push('ckbXUqb4Xss:APA91bH56YUVrXPP_wCI8CPc0oJmp5OYA3jePS8n1LE-mOSiORqKKzyqzuk_5J7piDUcrpPZ68pxYx19BvDNUbinwagJCBvPuQuXjFnnLnZ7dzUlMfccq5Ca74AP5fC-bTsMFA9B_CZN');
+	// registrationIds
+	// .push('eiin5Am5cso:APA91bHzJGt7PWcs96v6i6ycBk-AwcgovHYgsXaV4qc4rgkcgQuBe3CCIHohsfKbR9ZtD8C41_oNEhcfv6I4zFBfWIaYvylj-dGrCvQPE6vSu1lhOyyrhrqRWh53GwGaIjNAzeF3eb-6');
+
+}
+
+function getJongmok(res, queryData) {
+
+	var connection = mysql.createConnection({
+		host : "localhost",
+		port : 3306,
+		user : "root",
+		password : "love0113",
+		database : "tokenstorage"
+	});
+
+	var sqlQuery = "select * from jongmoktable";
+
+	var sender = new gcm.Sender('AIzaSyDmYg6tJfEjW7H5u5-FVdgwFrCK-p7ecFU');
+	var registrationIds = [];
+
+	var data = [];
+
+	function callback(err, result) {
+		if (err) {
+			throw err
+		}
+
+//		for (var i = 0; i < result.length; i++) {
+//
+//			data.push(result[i].jongmok + '/' + result[i].price + '');
+//
+//		}
+
+		res.end(JSON.stringify(result));
+		console.log(JSON.stringify(result));
+	}
+
+	connection.connect();
+	var query = connection.query(sqlQuery, callback);
+
+	console.log('query = ' + query);
+	connection.end();
+
 }
 
 function handleGetRequest(req, res) {
@@ -198,7 +254,7 @@ function handleGetRequest(req, res) {
 
 	console.log('handleGetRequest pathname : ' + pathname);
 	if (pathname == '/sendgcm') {
-		handleGcm(res , queryData);
+		handleGcm(res, queryData);
 
 	}
 	if (pathname == '/savegcm') {
@@ -206,6 +262,16 @@ function handleGetRequest(req, res) {
 
 		saveSql(queryData)
 		res.end();
+	}
+	if (pathname == '/savejongmok') {
+		console.log('savejongmok name: ' + queryData.name);
+
+		saveJongmok(queryData)
+		res.end('ok');
+	}
+	if (pathname == '/getjongmok') {
+		getJongmok(res, queryData);
+
 	}
 
 }
